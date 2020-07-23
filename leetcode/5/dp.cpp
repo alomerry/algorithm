@@ -6,34 +6,35 @@
 #include <algorithm>
 
 using namespace std;
+bool dp[1000][1000];
 
-//grpcurl -plaintext -d '{"user":{"id":"5f1690b0c8418a01af40ac22"},"name":"test","type":"event","filterType":"all","tags":[],"repeatable":false,"group":[],"event":{"eventId":"maievent-app-enter"},"workflows":[],"status":"unfinishdraft"}' 127.0.0.1:1706 mairpc.marketing.MarketingService.UpsertMarketo
 string longestPalindrome(string s) {
-    int max = -1, a, b, c, d, size = s.size();
-    for (int i = 0; i < size; ++i) {
-        a = i - 1, b = i + 1;
-        while (a >= 0 && b < size) {
-            if (s[a] == s[b]) {
-                if (max < (b - a + 1)) {
-                    max = b - a + 1;
-                    c = a;
-                    d = b - a + 1;
-                }
+    int max = -1, a = 0, b = 1, j = 0, size = s.size();
+    for (int l = 0; l < size; ++l) {
+        for (int i = 0; i + l < size; ++i) {
+            j = i + l;
+            if (l == 0)
+                dp[i][j] = true;
+            else if (l == 1) {
+                dp[i][j] = s[i] == s[j];
             } else {
-                break;
+                dp[i][j] = s[i] == s[j] && dp[i + 1][j - 1];
             }
-            --a;
-            ++b;
+            if (dp[i][j] && max < l+1) {
+                max = l+1;
+                a = i;
+                b = l+1;
+            }
         }
     }
-    return s.substr(c, d);
+    return s.substr(a, b);
 }
 
 
 int main() {
 //    cout << longestPalindrome("babad") << endl;
-    cout << longestPalindrome("avvccvvas") << endl;
-    cout << longestPalindrome("vbfddfawee") << endl;
+//    cout << longestPalindrome("avvccvvas") << endl;
+//    cout << longestPalindrome("vbfddfawee") << endl;
     cout << longestPalindrome("aaabaaaa") << endl;
     cout << longestPalindrome(
             "civilwartestingwhetherthatnaptionoranynartionsoconceivedandsodedicatedcanlongendureWeareqmetonagreatbattlefiemldoftzhatwarWehavecometodedicpateaportionofthatfieldasafinalrestingplaceforthosewhoheregavetheirlivesthatthatnationmightliveItisaltogetherfangandproperthatweshoulddothisButinalargersensewecannotdedicatewecannotconsecratewecannothallowthisgroundThebravelmenlivinganddeadwhostruggledherehaveconsecrateditfaraboveourpoorponwertoaddordetractTgheworldadswfilllittlenotlenorlongrememberwhatwesayherebutitcanneverforgetwhattheydidhereItisforusthelivingrathertobededicatedheretotheulnfinishedworkwhichtheywhofoughtherehavethusfarsonoblyadvancedItisratherforustobeherededicatedtothegreattdafskremainingbeforeusthatfromthesehonoreddeadwetakeincreaseddevotiontothatcauseforwhichtheygavethelastpfullmeasureofdevotionthatweherehighlyresolvethatthesedeadshallnothavediedinvainthatthisnationunsderGodshallhaveanewbirthoffreedomandthatgovernmentofthepeoplebythepeopleforthepeopleshallnotperishfromtheearth")
