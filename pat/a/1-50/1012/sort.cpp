@@ -77,7 +77,7 @@ main()
         }
         else
         {
-            cout << "N/A" << endl;
+            cout << "N/a" << endl;
         }
     }
 
