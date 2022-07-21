@@ -1,0 +1,62 @@
+FROM phusion/baseimage:focal-1.1.0
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV HOME /root
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+ENV NVM_DIR /root/.nvm
+ARG name=vscode-web
+ARG NODE_VERSION=16.16.0
+# COPY conf/aptSources.list /etc/apt/sources.list
+
+RUN apt-get update; \
+  DEBIAN_FRONTEND="noninteractive" apt-get install --no-install-recommends -y \
+  build-essential \
+  ruby-full \
+  git \
+  net-tools \
+  wget \
+  zsh; \
+  apt-get clean; \
+  rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+# on-my-zsh and plugs
+RUN REMOTE=https://gitee.com/mirrors/oh-my-zsh.git sh -c "$(curl -fsSL https://gitee.com/mirrors/oh-my-zsh/raw/master/tools/install.sh)"; \
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions; \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+RUN curl -s http://cdn.alomerry.com/packages/nvm/install.sh | bash
+
+RUN . ${NVM_DIR}/nvm.sh && nvm install ${NODE_VERSION} && nvm alias default ${NODE_VERSION} && nvm use default ${NODE_VERSION}
+ENV NODE_PATH $NVM_DIR/versions/node/v${NODE_VERSION}/lib/node_modules
+ENV PATH $NVM_DIR/versions/node/v${16.16.0}/bin:$PATH
+
+RUN npm config set registry https://registry.npm.taobao.org; \
+  npm install -g yarn \
+  RUN yarn config set registry https://registry.npmmirror.com; \
+  git config --global user.name "Alomerry Wu"; \
+  git config --global user.email "alomerry.wu@maiscrm.com"
+
+RUN gem sources --remove https://rubygems.org/; \
+  gem sources -a https://gems.ruby-china.com; \
+  gem install bundler jekyll; \
+  gem cleanup
+RUN bundle config mirror.https://rubygems.org https://gems.ruby-china.com
+
+RUN rm -rf /etc/cron.daily/apt; \
+  sed -i 's/#force_color_prompt/force_color_prompt/' /root/.bashrc
+
+VOLUME /root/workspace
+WORKDIR /root/app
+RUN wget -q https://update.code.visualstudio.com/latest/server-linux-x64-web/stable; \
+  tar -xf stable; \
+  rm stable;
+
+WORKDIR vscode-server-linux-x64-web
+RUN wget -q http://cdn.alomerry.com/vscode/web/server.sh; \
+  RUN chmod +x ./server.sh
+CMD ./server.sh --host 0.0.0.0 --without-connection-token --accept-server-license-terms
+
+EXPOSE 8000
